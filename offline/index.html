@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kafíčko</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+
+    <div id="offline-banner" class="offline-banner" hidden>
+      Jste offline – data budou uložena lokálně.
+    </div>
+
+    <header class="app-header">
+      <div class="logo">
+        <span class="logo-text">Kafíčko</span>
+      </div>
+      <p class="tagline">Eviduj svůj nápoj</p>
+    </header>
+
+    <main class="app-main">
+
+      <section class="card" id="section-user">
+        <h2 class="card-title">
+          <span class="step-badge">1</span>
+          Kdo jsi?
+        </h2>
+        <div id="user-list" class="user-list">
+          <div class="loader">Načítám uživatele…</div>
+        </div>
+      </section>
+
+      <section class="card" id="section-drinks">
+        <h2 class="card-title">
+          <span class="step-badge">2</span>
+          Co jsi pil/a?
+        </h2>
+        <div id="drink-list" class="drink-list">
+          <div class="loader">Načítám nápoje…</div>
+        </div>
+      </section>
+
+      <button id="btn-submit" class="btn-submit" disabled>Odeslat</button>
+
+      <section class="card" id="section-summary">
+        <button id="btn-summary" class="btn-summary">Denní přehled</button>
+        <div id="daily-summary" hidden></div>
+      </section>
+
+      <div id="toast" class="toast hidden"></div>
+
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
