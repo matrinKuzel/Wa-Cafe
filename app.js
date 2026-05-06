@@ -1,13 +1,8 @@
-/**
- * Kafíčko – app.js
- * Pure vanilla JS coffee-tracker.
- * API base: https://crm.skch.cz/ajax0/procedure.php
- * Commands: getPeopleList | getTypesList | saveDrinks (POST)
- */
+
 
 const API = 'https://crm.skch.cz/ajax0/procedure.php';
 
-/* ---- State ------------------------------------------------ */
+
 const state = {
   users: [],        // [{ id, name }]
   types: [],        // [{ id, name }] or string list
@@ -15,13 +10,11 @@ const state = {
   counts: {},       // { typeName: count }
 };
 
-/* ---- DOM refs --------------------------------------------- */
 const userListEl  = document.getElementById('user-list');
 const drinkListEl = document.getElementById('drink-list');
 const submitBtn   = document.getElementById('btn-submit');
 const toast       = document.getElementById('toast');
 
-/* ---- Helpers ---------------------------------------------- */
 function api(cmd, extraParams = {}) {
   const url = new URL(API);
   url.searchParams.set('cmd', cmd);
@@ -54,7 +47,6 @@ function showToast(msg, type = '') {
 
 
 
-/* ---- Render users ---------------------------------------- */
 function renderUsers() {
   userListEl.innerHTML = '';
   if (!state.users.length) {
@@ -90,7 +82,6 @@ function renderUsers() {
   updateSubmitState();
 }
 
-/* ---- Render drinks --------------------------------------- */
 function renderDrinks() {
   drinkListEl.innerHTML = '';
   if (!state.types.length) {
@@ -134,12 +125,10 @@ function renderDrinks() {
   });
 }
 
-/* ---- Submit state ---------------------------------------- */
 function updateSubmitState() {
   submitBtn.disabled = !state.selectedUser;
 }
 
-/* ---- Submit ---------------------------------------------- */
 submitBtn.addEventListener('click', async () => {
   if (!state.selectedUser) return;
 
@@ -157,49 +146,45 @@ submitBtn.addEventListener('click', async () => {
   submitBtn.textContent = 'Odesílám…';
 
   try {
-    const res = await fetch(`${API}?cmd=saveDrinks`, {
+    const res = await fetch(API, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({ cmd: 'saveDrinks', ...payload }),
     });
 
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-    // Reset counts
     state.types.forEach(t => {
       const name = typeof t === 'string' ? t : (t.name || t.type || String(t));
       state.counts[name] = 0;
     });
     renderDrinks();
-    showToast('✅ Nápoje uloženy!', 'success');
+    showToast('Nápoje uloženy!', 'success');
   } catch (err) {
     console.error('saveDrinks error:', err);
-    showToast('❌ Chyba při odesílání. Zkus to znovu.', 'error');
+    showToast('Chyba při odesílání. Zkus to znovu.', 'error');
   } finally {
     submitBtn.classList.remove('loading');
     submitBtn.textContent = 'Odeslat';
     submitBtn.disabled = !state.selectedUser;
   }
+
 });
 
-/* ---- Init ------------------------------------------------ */
+//start
 async function init() {
-  // Fetch users and types in parallel
   const [usersResult, typesResult] = await Promise.allSettled([
     api('getPeopleList'),
     api('getTypesList'),
   ]);
 
-  // Parse users
   if (usersResult.status === 'fulfilled') {
     const data = usersResult.value;
-    // Handle various response shapes
     if (Array.isArray(data)) {
       state.users = data.map(u =>
         typeof u === 'string' ? { id: u, name: u } : { id: u.id ?? u.userId ?? u.ID, name: u.name ?? u.fullName ?? u.userName ?? String(u.id) }
       );
     } else if (data && typeof data === 'object') {
-      // Maybe { users: [...] } or { data: [...] }
       const arr = data.users ?? data.data ?? data.people ?? Object.values(data);
       state.users = arr.map(u =>
         typeof u === 'string' ? { id: u, name: u } : { id: u.id ?? u.userId ?? u.ID, name: u.name ?? u.fullName ?? u.userName ?? String(u.id) }
@@ -207,10 +192,9 @@ async function init() {
     }
   }
 
-  // Parse types
   if (typesResult.status === 'fulfilled') {
     const data = typesResult.value;
-    console.log('getTypesList raw response:', data); // debug – remove when confirmed working
+    console.log('getTypesList raw response:', data); 
 
     const arr = Array.isArray(data)
       ? data
@@ -218,7 +202,6 @@ async function init() {
 
     state.types = arr.map(t => {
       if (typeof t === 'string') return t;
-      // Try every common key name the API might use
       return t.typ ?? t.name ?? t.type ?? t.nazev ?? t.title ?? t.drink ?? t.label ?? JSON.stringify(t);
     });
   }
@@ -226,5 +209,7 @@ async function init() {
   renderUsers();
   renderDrinks();
 }
+
+init();
 
 init();
